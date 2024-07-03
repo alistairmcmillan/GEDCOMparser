@@ -1,0 +1,87 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>GEDCOM Parser</title>
+        <style>
+            #drop_zone {
+                border: 5px solid blue;
+                width: 712px;
+                height: 100px;
+                text-align: center;
+            }
+
+            .output {
+                text-align: left;
+            }
+        </style>
+    </head>
+    <body>
+        <div
+            id="drop_zone"
+            ondrop="dropHandler(event);"
+            ondragover="dragOverHandler(event);">
+            <p>Drop your GEDCOM file here.</p>
+        </div>
+
+        <div>
+            <textarea id="output" rows="40" cols="100" readonly></textarea>
+        </div>
+
+        <script>
+            function parseFile(file) {
+                var output = document.getElementById('output');
+                var r = new FileReader();
+                var newPerson = false;
+                var count = 0;
+
+                r.onload = function(e) {
+                    var contents = e.target.result;
+                    var ct = r.result;
+                    var lines = ct.split('\n');
+                    output.textContent = "";
+                    lines.forEach((line) => {
+                        if (newPerson && line.startsWith("1 NAME")) {
+                            var clean = line.substring(7).replace('/','')
+                            clean = clean.replace('/','')
+                            count++;
+                            output.textContent += count + " " + clean + "\n";
+                        }
+
+                        if (line.indexOf("INDI") != -1) {
+                            newPerson = true;
+                        } else {
+                            newPerson = false;
+                        }
+                    });
+                }
+                r.readAsText(file);
+            }
+            function dropHandler(ev) {
+                // Prevent default behavior (Prevent file from being opened)
+                ev.preventDefault();
+
+                if (ev.dataTransfer.items) {
+                    // Use DataTransferItemList interface to access the file(s)
+                    [...ev.dataTransfer.items].forEach((item, i) => {
+                        // If dropped items aren't files, reject them
+                        if (item.kind === "file") {
+                            const file = item.getAsFile();
+                            console.log(`file[${i}].name = ${file.name}`);
+                            parseFile(file);
+                        }
+                    });
+                } else {
+                    // Use DataTransfer interface to access the file(s)
+                    [...ev.dataTransfer.files].forEach((file, i) => {
+                        console.log(` file[${i}].name = ${file.name}`);
+                    });
+                }
+            }
+
+            function dragOverHandler(ev) {
+                // Prevent default behavior (Prevent file from being opened)
+                ev.preventDefault();
+            }
+        </script>
+    </body>
+</html>
