@@ -38,20 +38,18 @@
                     var contents = e.target.result;
                     var ct = r.result;
                     var lines = ct.split('\n');
+                    var locations = [];
                     output.textContent = "";
                     lines.forEach((line) => {
-                        if (newPerson && line.startsWith("1 NAME")) {
-                            var clean = line.substring(7).replace('/','')
-                            clean = clean.replace('/','')
-                            count++;
-                            output.textContent += count + " " + clean + "\n";
+                        if (line.startsWith("2 PLAC")) {
+                            if (!locations.includes(line.substring(7))) {
+                                locations.push(line.substring(7));
+                            }
                         }
-
-                        if (line.indexOf("INDI") != -1) {
-                            newPerson = true;
-                        } else {
-                            newPerson = false;
-                        }
+                    });
+                    locations.sort();
+                    locations.forEach((location) => {
+                        output.textContent += location + "\n";
                     });
                 }
                 r.readAsText(file);
