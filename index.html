@@ -3,27 +3,25 @@
     <head>
         <title>GEDCOM Parser</title>
         <style>
-            #drop_zone {
-                border: 5px solid blue;
-                width: 712px;
-                height: 100px;
+            body {
+                font-family: sans-serif;
                 text-align: center;
             }
-
             .output {
                 text-align: left;
             }
         </style>
     </head>
     <body>
+        <div>
+            <h1>Drop a GEDCOM file in the box below.</h1>
+            The page will parse the file and list place names that start with commas,<br />
+            and list the person records that contain those addresses.
+        </div>
         <div
             id="drop_zone"
             ondrop="dropHandler(event);"
             ondragover="dragOverHandler(event);">
-            <p>Drop your GEDCOM file here.</p>
-        </div>
-
-        <div>
             <textarea id="output" rows="40" cols="100" readonly></textarea>
         </div>
 
