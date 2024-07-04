@@ -32,10 +32,11 @@
                 var output = document.getElementById('output');
                 var r = new FileReader();
                 var newPerson = false;
-                var count = 0;
+                var currentPerson = "";
+                var newBirth = false;
+                var currentBirth = "";
 
                 r.onload = function(e) {
-                    var contents = e.target.result;
                     var ct = r.result;
                     var lines = ct.split('\n');
                     var locations = [];
@@ -49,7 +50,50 @@
                     });
                     locations.sort();
                     locations.forEach((location) => {
-                        output.textContent += location + "\n";
+
+                        // We're only interested in badly transcribed
+                        // locations that start with a comma
+                        if (location[0] === ",") {
+
+                            // Start by printing the location
+                            output.textContent += location + "\n";
+
+                            // Then search through the entire file
+                            lines.forEach((line) => {
+
+                                // Each time a new person's name is stored
+                                // we grab their birth year
+                                if (newBirth && line.startsWith("2 DATE")) {
+                                    currentBirth = line.substring(line.length-4);
+                                    newBirth = false;
+                                }
+                                if (line.startsWith("1 BIRT")) {
+                                    newBirth = true;
+                                }
+
+                                // Each time we find a new person
+                                // store their name
+                                if (newPerson && line.startsWith("1 NAME")) {
+                                    var clean = line.substring(7).replace('/','')
+                                    currentPerson = clean.replace('/','')
+                                }
+                                if (line.indexOf("INDI") != -1) {
+                                    newPerson = true;
+                                    newBirth = false;
+                                    currentBirth = "";
+                                } else {
+                                    newPerson = false;
+                                }
+
+                                // If we find the location we are interested in
+                                // we write out the relevant person with that
+                                // location
+                                if (line.substring(7) === location) {
+                                    output.textContent += `\t${currentPerson} (${currentBirth})\n`;
+                                }
+                            });
+                            output.textContent += "\n";
+                        }
                     });
                 }
                 r.readAsText(file);
