@@ -47,11 +47,14 @@
                         }
                     });
                     locations.sort();
+
+                    var count = 0;
                     locations.forEach((location) => {
 
                         // We're only interested in badly transcribed
                         // locations that start with a comma
                         if (location[0] === ",") {
+                            count++;
 
                             // Start by printing the location
                             output.textContent += location + "\n";
@@ -92,7 +95,18 @@
                             });
                             output.textContent += "\n";
                         }
+
                     });
+
+                    // If there are no problematic addresses
+                    // just output clean list of addresses.
+                    if (count === 0) {
+                        output.textContent += "Found no places that start with a comma.\n\n"
+                        locations.forEach((location) => {
+                            output.textContent += `${location}\n`;
+                        });
+                    }
+
                 }
                 r.readAsText(file);
             }
@@ -106,7 +120,6 @@
                         // If dropped items aren't files, reject them
                         if (item.kind === "file") {
                             const file = item.getAsFile();
-                            console.log(`file[${i}].name = ${file.name}`);
                             parseFile(file);
                         }
                     });
