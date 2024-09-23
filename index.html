@@ -14,9 +14,11 @@
     </head>
     <body>
         <div>
-            <h1>Drop a GEDCOM file in the box below.</h1>
+            <h1>Drop a GEDCOM file in the box below</h1>
             The page will parse the file and list place names that start with commas,<br />
-            and list the person records that contain those addresses.
+            and list the person records that contain those places.<br />
+            <br />
+            Your data isn't sent anywhere. All the work happens in your own browser on your own device.
         </div>
         <div
             id="drop_zone"
@@ -39,6 +41,8 @@
                     var lines = ct.split('\n');
                     var locations = [];
                     output.textContent = "";
+
+                    // Generate list of unique locations
                     lines.forEach((line) => {
                         if (line.startsWith("2 PLAC")) {
                             if (!locations.includes(line.substring(7))) {
