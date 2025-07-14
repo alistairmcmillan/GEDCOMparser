@@ -15,7 +15,7 @@
     <body>
         <div>
             <h1>Drop a GEDCOM file in the box below</h1>
-            The page will parse the file and list place names that start with commas,<br />
+            The page will parse the file and list place names that start or end with commas,<br />
             and list the person records that contain those places.<br />
             <br />
             Your data isn't sent anywhere. All the work happens in your own browser on your own device.
@@ -29,39 +29,39 @@
 
         <script>
             function parseFile(file) {
-                var output = document.getElementById('output');
-                var r = new FileReader();
-                var newPerson = false;
-                var currentPerson = "";
-                var newBirth = false;
-                var currentBirth = "";
+                var output = document.getElementById('output')
+                var r = new FileReader()
+                var newPerson = false
+                var currentPerson = ""
+                var newBirth = false
+                var currentBirth = ""
 
                 r.onload = function(e) {
-                    var ct = r.result;
-                    var lines = ct.split('\n');
-                    var locations = [];
-                    output.textContent = "";
+                    var ct = r.result
+                    var lines = ct.split('\n')
+                    var locations = []
+                    output.textContent = ""
 
                     // Generate list of unique locations
                     lines.forEach((line) => {
                         if (line.startsWith("2 PLAC")) {
                             if (!locations.includes(line.substring(7))) {
-                                locations.push(line.substring(7));
+                                locations.push(line.substring(7))
                             }
                         }
                     });
-                    locations.sort();
+                    locations.sort()
 
-                    var count = 0;
+                    var count = 0
                     locations.forEach((location) => {
 
                         // We're only interested in badly transcribed
                         // locations that start with a comma
-                        if (location[0] === ",") {
-                            count++;
+                        if (location[0] === "," || location[location.length-1] === ",") {
+                            count++
 
                             // Start by printing the location
-                            output.textContent += location + "\n";
+                            output.textContent += location + "\n"
 
                             // Then search through the entire file
                             lines.forEach((line) => {
@@ -69,11 +69,11 @@
                                 // Each time a new person's name is stored
                                 // we grab their birth year
                                 if (newBirth && line.startsWith("2 DATE")) {
-                                    currentBirth = line.substring(line.length-4);
-                                    newBirth = false;
+                                    currentBirth = line.substring(line.length-4)
+                                    newBirth = false
                                 }
                                 if (line.startsWith("1 BIRT")) {
-                                    newBirth = true;
+                                    newBirth = true
                                 }
 
                                 // Each time we find a new person
@@ -83,61 +83,61 @@
                                     currentPerson = clean.replace('/','')
                                 }
                                 if (line.indexOf("INDI") != -1) {
-                                    newPerson = true;
-                                    newBirth = false;
-                                    currentBirth = "";
+                                    newPerson = true
+                                    newBirth = false
+                                    currentBirth = ""
                                 } else {
-                                    newPerson = false;
+                                    newPerson = false
                                 }
 
                                 // If we find the location we are interested in
                                 // we write out the relevant person with that
                                 // location
                                 if (line.substring(7) === location) {
-                                    output.textContent += `\t${currentPerson} (${currentBirth})\n`;
+                                    output.textContent += `\t${currentPerson} (${currentBirth})\n`
                                 }
-                            });
-                            output.textContent += "\n";
+                            })
+                            output.textContent += "\n"
                         }
 
-                    });
+                    })
 
                     // If there are no problematic addresses
                     // just output clean list of addresses.
                     if (count === 0) {
-                        output.textContent += "Found no places that start with a comma.\n\n"
+                        output.textContent += "Found no places that start or end with a comma.\n\n"
                         locations.forEach((location) => {
-                            output.textContent += `${location}\n`;
-                        });
+                            output.textContent += `${location}\n`
+                        })
                     }
 
                 }
-                r.readAsText(file);
+                r.readAsText(file)
             }
             function dropHandler(ev) {
                 // Prevent default behavior (Prevent file from being opened)
-                ev.preventDefault();
+                ev.preventDefault()
 
                 if (ev.dataTransfer.items) {
                     // Use DataTransferItemList interface to access the file(s)
                     [...ev.dataTransfer.items].forEach((item, i) => {
                         // If dropped items aren't files, reject them
                         if (item.kind === "file") {
-                            const file = item.getAsFile();
-                            parseFile(file);
+                            const file = item.getAsFile()
+                            parseFile(file)
                         }
                     });
                 } else {
                     // Use DataTransfer interface to access the file(s)
                     [...ev.dataTransfer.files].forEach((file, i) => {
-                        console.log(` file[${i}].name = ${file.name}`);
-                    });
+                        console.log(` file[${i}].name = ${file.name}`)
+                    })
                 }
             }
 
             function dragOverHandler(ev) {
                 // Prevent default behavior (Prevent file from being opened)
-                ev.preventDefault();
+                ev.preventDefault()
             }
         </script>
     </body>
