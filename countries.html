@@ -1,0 +1,184 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>GEDCOM Parser</title>
+        <style>
+            body {
+                font-family: sans-serif;
+                text-align: center;
+            }
+            .output {
+                text-align: left;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1>Drop a GEDCOM file in the box below</h1>
+            The page will parse the file and list place names that start with commas,<br />
+            and list the person records that contain those places.<br />
+            <br />
+            Your data isn't sent anywhere. All the work happens in your own browser on your own device.
+        </div>
+        <div
+            id="drop_zone"
+            ondrop="dropHandler(event);"
+            ondragover="dragOverHandler(event);">
+            <textarea id="output" rows="40" cols="100" readonly></textarea>
+        </div>
+
+        <script>
+            function parseFile(file) {
+                var output = document.getElementById('output')
+                var r = new FileReader()
+                var newPerson = false
+                var currentPerson = ""
+                var newBirth = false
+                var currentBirth = ""
+
+                var realCountries = [
+                                    "Australia",
+                                    "Bahamas",
+                                    "Belgium",
+                                    "Canada",
+                                    "Denmark",
+                                    "England",
+                                    "Egypt",
+                                    "France",
+                                    "India",
+                                    "Germany",
+                                    "Ireland",
+                                    "Italy",
+                                    "Kenya",
+                                    "Luxembourg",
+                                    "Netherlands",
+                                    "New Zealand",
+                                    "Northern Ireland",
+                                    "Philippines",
+                                    "Scotland",
+                                    "South Africa",
+                                    "Suriname",
+                                    "USA",
+                                    "Wales"
+                                    ]
+
+                function getCountry(line) {
+                    let lastComma = line.lastIndexOf(',')
+                    let country = line.substring(lastComma+1)
+                    country = country.trim()
+                    return country
+                }
+
+                r.onload = function(e) {
+                    var ct = r.result
+                    var lines = ct.split('\n')
+                    var locations = []
+                    output.textContent = ""
+
+                    // Generate list of unique locations
+                    lines.forEach((line) => {
+                        if (line.startsWith("2 PLAC")) {
+                            if (!locations.includes(line.substring(7))) {
+                                locations.push(line.substring(7))
+                            }
+                        }
+                    });
+                    locations.sort();
+
+                    // Generate list of unique "countries"
+                    var countries = [];
+                    locations.forEach((location) => {
+
+                        let country = getCountry(location)
+
+                        if (!countries.includes(country)) {
+                            if (!realCountries.includes(country)) {
+                                countries.push(country)
+                            }
+                        }
+
+                    });
+                    countries.sort();
+
+                    var count = 0
+                    var count2 = 0
+                    for(cntry in countries) {
+                        // Start by printing the location
+                        output.textContent += countries[cntry] + "\n";
+
+                        // Then search through the entire file
+                        for(ln in lines) {
+
+                            // Each time a new person's name is stored
+                            // we grab their birth year
+                            if (newBirth && lines[ln].startsWith("2 DATE")) {
+                                currentBirth = lines[ln].substring(lines[ln].length-4);
+                                newBirth = false;
+                            }
+                            if (lines[ln].startsWith("1 BIRT")) {
+                                newBirth = true;
+                            }
+
+                            // Each time we find a new person
+                            // store their name
+                            if (newPerson && lines[ln].startsWith("1 NAME")) {
+                                var clean = lines[ln].substring(7).replace('/','')
+                                currentPerson = clean.replace('/','')
+                            }
+                            if (lines[ln].substring(lines[ln].length-4) === "INDI") {
+                                newPerson = true;
+                                newBirth = false;
+                                currentBirth = "";
+                            } else {
+                                newPerson = false;
+                            }
+
+                            // If we find the location we are interested in
+                            // we write out the relevant person with that
+                            // location
+                            let testCountry = getCountry(lines[ln])
+                            if (countries[cntry] === testCountry) {
+                                count2++
+                                output.textContent += `\t${currentPerson} (${currentBirth})\n`
+                            }
+
+                        }
+
+                        count++
+
+                    }
+
+                    output.textContent += `\nFound ${count} potentially problematic countries.\n`
+                    output.textContent += `\nFound ${count2} profiles with potentially problematic countries.`
+
+                }
+                r.readAsText(file);
+            }
+            function dropHandler(ev) {
+                // Prevent default behavior (Prevent file from being opened)
+                ev.preventDefault();
+
+                if (ev.dataTransfer.items) {
+                    // Use DataTransferItemList interface to access the file(s)
+                    [...ev.dataTransfer.items].forEach((item, i) => {
+                        // If dropped items aren't files, reject them
+                        if (item.kind === "file") {
+                            const file = item.getAsFile();
+                            parseFile(file);
+                        }
+                    });
+                } else {
+                    // Use DataTransfer interface to access the file(s)
+                    [...ev.dataTransfer.files].forEach((file, i) => {
+                        console.log(` file[${i}].name = ${file.name}`);
+                    });
+                }
+            }
+
+            function dragOverHandler(ev) {
+                // Prevent default behavior (Prevent file from being opened)
+                ev.preventDefault();
+            }
+        </script>
+    </body>
+</html>
