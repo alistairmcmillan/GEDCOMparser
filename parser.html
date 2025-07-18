@@ -1,0 +1,80 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>GEDCOM Parser</title>
+        <style>
+            body {
+                font-family: sans-serif;
+                text-align: center;
+            }
+            .output {
+                text-align: left;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1>Drop a GEDCOM file in the box below</h1>
+            The page will parse the file and list people.<br />
+            <br />
+            Your data isn't sent anywhere. All the work happens in your own browser on your own device.
+        </div>
+        <div
+            id="drop_zone"
+            ondrop="dropHandler(event);"
+            ondragover="dragOverHandler(event);">
+            <textarea id="output" rows="40" cols="100" readonly></textarea>
+        </div>
+
+        <script>
+
+            const output = document.getElementById('output')
+            const worker = new Worker("parser.js")
+
+            worker.onmessage = (event) => {
+                output.textContent += event.data
+                output.scrollTop = output.scrollHeight;
+                console.log(`Got: ${event.data}`)
+            };
+
+            worker.onerror = (error) => {
+                console.log(`Worker error: ${error.message}`);
+                throw error;
+            };
+
+            function dropHandler(ev) {
+                console.log(`dropHandler called`)
+                var reader = new FileReader()
+
+                // Prevent default behavior (Prevent file from being opened)
+                ev.preventDefault();
+
+                reader.onload = function(e) {
+                    worker.postMessage(reader.result)
+                }
+
+                if (ev.dataTransfer.items) {
+                    // Use DataTransferItemList interface to access the file(s)
+                    [...ev.dataTransfer.items].forEach((item, i) => {
+                        // If dropped items aren't files, reject them
+                        if (item.kind === "file") {
+                            const file = item.getAsFile()
+                            reader.readAsText(file)
+                        }
+                    });
+                } else {
+                    // Use DataTransfer interface to access the file(s)
+                    [...ev.dataTransfer.files].forEach((file, i) => {
+                        console.log(` file[${i}].name = ${file.name}`)
+                    });
+                }
+            }
+
+            function dragOverHandler(ev) {
+                // Prevent default behavior (Prevent file from being opened)
+                ev.preventDefault()
+            }
+
+        </script>
+    </body>
+</html>
