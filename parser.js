@@ -18,31 +18,35 @@ function parseData(data) {
     var count = 0
 
     // Then search through the entire file
-    for(ln in lines) {
+    for(const line of lines) {
+
+        switch(line.substring(0,6)) {
+            case "1 NAME":
+                if (newPerson) {
+                    var clean = line.substring(7).replace('/','')
+                    currentPerson = clean.replace('/','')
+                    newPerson = false;
+                    gotName = true;
+                }
+                break
+            case "1 BIRT":
+                newBirth = true
+                currentBirth = ""
+                break
+            case "2 DATE":
+                if (newBirth) {
+                    currentBirth = line.substring(line.length-4)
+                    newBirth = false
+                    gotBirth = true
+                }
+                break
+        }
 
         // INDI indicates the start of a new person
-        if (lines[ln].substring(lines[ln].length-4) === "INDI") {
+        if (line.substring(line.length-4) === "INDI") {
             newPerson = true;
             currentPerson = "";
             currentBirth = "";
-        }
-
-        if (newPerson && lines[ln].startsWith("1 NAME")) {
-            var clean = lines[ln].substring(7).replace('/','')
-            currentPerson = clean.replace('/','')
-            newPerson = false;
-            gotName = true;
-        }
-
-        if (lines[ln].startsWith("1 BIRT")) {
-            newBirth = true;
-            currentBirth = "";
-        }
-
-        if (newBirth && lines[ln].startsWith("2 DATE")) {
-            currentBirth = lines[ln].substring(lines[ln].length-4)
-            newBirth = false
-            gotBirth = true
         }
 
         if (gotName === true && gotBirth === true) {
