@@ -34,7 +34,6 @@
             worker.onmessage = (event) => {
                 output.textContent += event.data
                 output.scrollTop = output.scrollHeight;
-                console.log(`Got: ${event.data}`)
             };
 
             worker.onerror = (error) => {

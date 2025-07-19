@@ -7,15 +7,15 @@ self.onmessage = (event) => {
 function parseData(data) {
     console.log(`parseData called`)
     var newPerson = true
-    var gotName = false
-    var currentPerson = ""
     var newBirth = false
+    var gotName = false
+    var gotBirth = false
+    var currentPerson = ""
     var currentBirth = ""
 
     var lines = data.split('\n')
 
     var count = 0
-    var count2 = 0
 
     // Then search through the entire file
     for(ln in lines) {
@@ -40,14 +40,16 @@ function parseData(data) {
         }
 
         if (newBirth && lines[ln].startsWith("2 DATE")) {
-            currentBirth = lines[ln].substring(lines[ln].length-4);
-            newBirth = false;
+            currentBirth = lines[ln].substring(lines[ln].length-4)
+            newBirth = false
+            gotBirth = true
         }
 
-        if (gotName === true) {
-            count2++
-            self.postMessage(`${count2} ${currentPerson}\n`);
-            gotName = false;
+        if (gotName === true && gotBirth === true) {
+            count++
+            self.postMessage(`${count} ${currentPerson} (${currentBirth})\n`)
+            gotName = false
+            gotBirth = false
         }
 
     }
